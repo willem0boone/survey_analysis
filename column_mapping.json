@@ -18,7 +18,7 @@
     "In welke gemeente(n) brengt u regelmatig tijd door voor Kust-gebonden activiteiten?": "visit_municipalities",
     "Welke specifieke locatie(s) bezoekt u graag en waarom?": "location_pos",
     "Welke locatie(s) bezoekt u niet of niet graag en waarom?": "location Neg",
-    "Wat denkt u over de staat van het Kustmilieu?": "env_tate",
+    "Wat denkt u over de staat van het Kustmilieu?": "env_state",
     "Hoe belangrijk is het milieu voor uw beleving van de Kust?": "env_importance",
     "Welke activiteiten beïnvloeden volgens u het Kustmilieu? ": "influences",
     "Heeft u in de laatste 10 jaar milieuveranderingen opgemerkt aan de Kust? ": "env_change",
