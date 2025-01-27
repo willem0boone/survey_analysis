@@ -46,19 +46,10 @@ def demographics(data, title, save, show):
     plt.tight_layout()
 
     if save:
-        plt.savefig(f"{title}.png")
+        plt.savefig(f"output/{title}.png")
 
     if show:
         plt.show()
-
-
-def spatial_flow(df):
-    pass
-
-
-def visit_freq(df):
-    df
-    pass
 
 
 def clean_column_names(columns):
@@ -188,7 +179,7 @@ def plot_cumulative_responses(df, show, save):
     plt.title('Cumulative Responses and Weekly Response Counts')
     plt.tight_layout()
     if save:
-        plt.savefig("response_rate.png")
+        plt.savefig("output/response_rate.png")
     if show:
         plt.show()
 
@@ -232,7 +223,7 @@ if __name__ == "__main__":
     # visit_matrix = map_visits_to_matrix(df=df,
     #                                     )
     # print(visit_matrix)
-    # visit_matrix.to_csv('matrix7.csv')
+    # visit_matrix.to_csv('output/matrix7.csv')
 
     # -------------------------------------------------------------------------
     # demographics(df,
@@ -255,5 +246,5 @@ if __name__ == "__main__":
     # print(df["completion_time"])
     # plot_cumulative_responses(df, show=True, save=True)
 
-    boxplot(df, "env_importance")
-    boxplot(df, "env_state")
+    boxplot(df, "output/env_importance")
+    boxplot(df, "output/env_state")
