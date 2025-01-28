@@ -1,8 +1,11 @@
+import os.path
 import re
 import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+OUT_PATH = "participants_profile"
 
 
 def demographics(data, title, save, show):
@@ -46,33 +49,23 @@ def demographics(data, title, save, show):
     plt.tight_layout()
 
     if save:
-        plt.savefig(f"output/{title}.png")
+        plt.savefig(os.path.join(OUT_PATH, f"{title}.png"))
 
     if show:
         plt.show()
 
 
 def clean_column_names(columns):
-    """
-    Clean column names by removing special characters and spaces, replacing them with underscores.
-
-    Parameters:
-        columns (list): List of column names to clean.
-
-    Returns:
-        list: Cleaned column names.
-    """
     return [re.sub(r'[^a-zA-Z0-9]', '_', col) for col in columns]
 
 
 def map_visits_to_matrix(df):
-    # Define column names
     home_col = "municipality"
     visit_col = "visit_municipalities"
 
-    # Ensure the expected columns exist in the DataFrame
     if home_col not in df.columns or visit_col not in df.columns:
-        raise ValueError(f"The DataFrame must contain '{home_col}' and '{visit_col}' columns.")
+        raise ValueError(f"The DataFrame must contain '{home_col}' and "
+                         f"'{visit_col}' columns.")
 
     # Define the municipalities order
     municipalities = [
@@ -90,35 +83,32 @@ def map_visits_to_matrix(df):
         'Andere gemeente in België'
     ]
 
-    # Calculate home counts
     home_count = df[home_col].value_counts()
-    home_count = home_count.reindex(index=municipalities, fill_value=0)
 
-    # Initialize an empty DataFrame for the result matrix
-    visit_matrix = pd.DataFrame(0, index=municipalities, columns=municipalities)
+    home_count = home_count.reindex(index=municipalities,
+                                    fill_value=0
+                                    )
 
-    # Iterate over each unique home municipality
+    visit_matrix = pd.DataFrame(data=0,
+                                index=municipalities,
+                                columns=municipalities
+                                )
+
     for home in municipalities:
-        # Filter the rows for the current home municipality
         df_home = df[df[home_col] == home]
 
-        # Split and explode the visit municipalities column
         locations_series = (
             df_home[visit_col]
             .str.split(';')
             .explode()
-            .loc[lambda x: x != '']  # Exclude empty strings
+            .loc[lambda x: x != '']
         )
 
-        # Count the frequency of each visited location
         location_counts = locations_series.value_counts()
-
-        # Map the counts to the corresponding row in the matrix
         for visit, count in location_counts.items():
             if visit in visit_matrix.columns:
                 visit_matrix.loc[home, visit] += count
 
-    # Combine home counts and visit matrix into a single DataFrame
     combined_matrix = visit_matrix.copy()
     combined_matrix.insert(0, "responses", home_count)
     combined_matrix.index.name = "municipalities"
@@ -179,12 +169,12 @@ def plot_cumulative_responses(df, show, save):
     plt.title('Cumulative Responses and Weekly Response Counts')
     plt.tight_layout()
     if save:
-        plt.savefig("output/response_rate.png")
+        plt.savefig(os.path.join(OUT_PATH, "response_rate.png"))
     if show:
         plt.show()
 
 
-def boxplot(df, col):
+def plot_score(df, col, name, show, save):
     plt.figure(figsize=(8, 6))
     sns.boxplot(y=df[col], color='skyblue')
 
@@ -199,52 +189,73 @@ def boxplot(df, col):
                 label=f'Median: {median:.2f}')
 
     # Add labels, legend, and title
-    plt.title('Boxplot of Scores with Mean and Median', fontsize=16)
+    plt.title(name, fontsize=16)
     plt.ylabel(col, fontsize=14)
     plt.legend(loc='upper right', fontsize=12)
 
     # Show the plot
     plt.tight_layout()
-    plt.show()
+
+    if show:
+        plt.show()
+    if save:
+        plt.savefig(os.path.join(OUT_PATH, f"{name}.png"))
 
 
 if __name__ == "__main__":
+
+    if not os.path.exists(OUT_PATH):
+        os.mkdir(OUT_PATH)
 
     csv_file = ("C:/Users/willem.boone/Documents/projects/MARBEFES/"
                 "analyse_survey/survey_responses.csv")
 
     df = pd.read_csv(csv_file, sep=";", encoding='latin-1')
-    with open("column_mapping.json", "r", encoding='utf-8') as f:
+    with open("mappings/column_mapping.json", "r", encoding='utf-8') as f:
         column_mapping = json.load(f)
     df.rename(columns=column_mapping, inplace=True)
 
     # -------------------------------------------------------------------------
+    # demographics
+    demographics(df,
+                 title=f"Demographic Distribution",
+                 show=False,
+                 save=True
+                 )
 
-    # visit_matrix = map_visits_to_matrix(df=df,
-    #                                     )
-    # print(visit_matrix)
-    # visit_matrix.to_csv('output/matrix7.csv')
+    # demographics per municipality
+    municipalities = df['municipality'].unique()
+
+    for municipality in municipalities:
+        municipality_data = df[df['municipality'] == municipality]
+        demographics(municipality_data,
+                     title=f"Demographic Distribution in {municipality}",
+                     show=False,
+                     save=True
+                     )
+    # -------------------------------------------------------------------------
+    # response over time
+    plot_cumulative_responses(df, show=False, save=True)
 
     # -------------------------------------------------------------------------
-    # demographics(df,
-    #              title=f"Demographic Distribution",
-    #              show=False,
-    #              save=True
-    #              )
-    #
-    # municipalities = df['municipality'].unique()
-    #
-    # for municipality in municipalities:
-    #     municipality_data = df[df['municipality'] == municipality]
-    #     demographics(municipality_data,
-    #                  title=f"Demographic Distribution in {municipality}",
-    #                  show=False,
-    #                  save=True
-    #                  )
+    # scores
+    plot_score(df,
+               col="env_state",
+               name="env_state",
+               save=True,
+               show=False
+               )
+
+    plot_score(df,
+               col="env_importance",
+               name="env_importance",
+               save=True,
+               show=False
+               )
+
     # -------------------------------------------------------------------------
+    # fluxes
+    visit_matrix = map_visits_to_matrix(df=df)
+    visit_matrix.to_csv(os.path.join(OUT_PATH, 'matrix.csv'))
 
-    # print(df["completion_time"])
-    # plot_cumulative_responses(df, show=True, save=True)
 
-    boxplot(df, "output/env_importance")
-    boxplot(df, "output/env_state")
