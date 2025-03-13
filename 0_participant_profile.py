@@ -215,6 +215,10 @@ if __name__ == "__main__":
         column_mapping = json.load(f)
     df.rename(columns=column_mapping, inplace=True)
 
+    # response 236 is considered a shitpost (not an integer reply) and should
+    # be removed.
+    df = df.drop(index=236)
+
     # -------------------------------------------------------------------------
     # demographics
     demographics(df,

@@ -44,6 +44,9 @@ if __name__ == "__main__":
     with open("mappings/column_mapping.json", "r", encoding='utf-8') as f:
         column_mapping = json.load(f)
     df.rename(columns=column_mapping, inplace=True)
+    # response 236 is considered a shitpost (not an integer reply) and should
+    # be removed.
+    df = df.drop(index=236)
 
     # -------------------------------------------------------------------------
     with open("mappings/connection_values.json", "r", encoding="utf-8") as f:
